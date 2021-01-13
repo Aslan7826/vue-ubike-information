@@ -1,51 +1,208 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>YouBike 臺北市公共自行車即時資訊</title>
+<html lang="en">
 
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>練習 13： YouBike 臺北市公共自行車即時資訊</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"
+    integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 
   <style>
-    body{ padding: 1em;  }
+    body {
+      padding: 1em;
+    }
+    ul.pagination {
+      display: inline-block;
+      padding: 0;
+      margin: 0;
+    }
+    ul.pagination li { display: inline; }
+
+    ul.pagination li a {
+      color: black;
+      float: left;
+      padding: 8px 16px;
+      text-decoration: none;
+      cursor: pointer; 
+    }
+    ul.pagination li a.active {
+    background-color: #4CAF50;
+    color: white;
+    }
+
+    ul.pagination li a:hover:not(.active) {background-color: #ddd;}
+
+    .myMOUSE{ cursor: pointer; }
+    .right{float:right;}
   </style>
 
-</head>
-<body>
+  <script src="https://unpkg.com/vue@next"></script>
 
-  <h1>YouBike 臺北市公共自行車即時資訊</h1>
+</head>
+
+<body>
+  <p>
+    練習 13： YouBike 臺北市公共自行車即時資訊 <br>
+    完成下列表格，並加入:
+    1. 站點名稱搜尋
+    2. 目前可用車輛 / 總停車格 的排序功能
+    3. 分頁+頁碼
+  </p>
+
+  <hr>
 
   <div id="app">
-
+    <div>
+      <p>
+        站點名稱搜尋: <input type="text" v-model="search" >
+      </p>
+      <div class="right"> 
+        分頁筆數:
+        <select class="myMOUSE" v-model="pageSize">
+          <template v-for="size in 20">
+            <option>{{size}}</option>
+          </template>
+        </select>
+      </div>
+    </div>
     <table class="table table-striped">
       <thead>
         <tr>
-          <th>#</th>
+          <th>#編號</th>
           <th>場站名稱</th>
           <th>場站區域</th>
-          <th>目前可用車輛</th>
-          <th>總停車格</th>
+          <th class="myMOUSE" @click="SetOrder('sbi')">目前可用車輛
+            <i class="fa fa-sort-asc" aria-hidden="true" ></i>
+            <i class="fa fa-sort-desc" aria-hidden="true" ></i>
+          </th>
+          <th class="myMOUSE" @click="SetOrder('tot')">總停車格
+            <i class="fa fa-sort-asc" aria-hidden="true" ></i>
+            <i class="fa fa-sort-desc" aria-hidden="true"></i>
+          </th>
           <th>資料更新時間</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="s in ubikeStops">
-          <td>{{ s.sno }}</td>
-          <td>{{ s.sna }}</td>
-          <td>{{ s.sarea }}</td>
-          <td>{{ s.sbi }}</td>
-          <td>{{ s.tot }}</td>
-          <td>{{ timeFormat(s.mday) }}</td>
-        </tr>
+        <!-- 請補完 -->
+        <tr v-for="uBike in ThePage">
+          <td>{{uBike.sno}}</td>
+          <td>{{uBike.sna}}</td>
+          <td>{{uBike.sarea}}</td>
+          <td>{{uBike.sbi}}</td>
+          <td>{{uBike.tot}}</td>
+          <td>{{uBike.mday}}</td>
+        </tr>        
       </tbody>
-
     </table>
-
+    <div >
+      <ul class="pagination right">
+          <li @click="Prev"><a><</a></li>
+          <template v-for="page in showPage">
+            <li @click="ChangePageIndex(page + pageIndex - 1)"><a>{{page+pageIndex}}</a></li>
+          </template>
+          <li @click="Next"><a>></a></li>
+      </ul>
+    </div>
   </div>
+  <script>
 
-  <script src="https://unpkg.com/vue@next"></script>
-  <script src="./scripts.js?v=2020081401"></script>
+    // 欄位說明請參照:
+    // http://data.taipei/opendata/datalist/datasetMeta?oid=8ef1626a-892a-4218-8344-f7ac46e1aa48
+    // 半成品參考: https://kuro.tw/vue-ubike-information/
+
+    // sno：站點代號、 sna：場站名稱(中文)、 tot：場站總停車格、
+    // sbi：場站目前車輛數量、 sarea：場站區域(中文)、 mday：資料更新時間、
+    // lat：緯度、 lng：經度、 ar：地(中文)、 sareaen：場站區域(英文)、
+    // snaen：場站名稱(英文)、 aren：地址(英文)、 bemp：空位數量、 act：全站禁用狀態
+
+    const app = Vue.createApp({
+      data () {
+        return {
+          uBikeStops: [],
+          showPage:5,
+          pageIndex:0,
+          pageSize:10,
+          search:"",
+          field:"sbi",
+          ordersbi:true,
+          ordertot:true
+        }
+      },
+      computed:{
+        pageCount(){
+          return Math.ceil( this.uBikeStops.length  / this.pageSize)
+        },
+        ThePage(){  
+          let uBikeStopsPageList = [...this.uBikeStops];
+          return this.PageSize(this.PageOrder(this.PageSearch(uBikeStopsPageList)))
+        }
+      },
+      methods :{
+        SetOrder(value){
+          this.field = value;
+          if(value == "sbi"){
+            this.ordersbi = !this.ordersbi
+          }else{
+            this.ordertot = !this.ordertot
+          }
+        },
+        PageSearch(list){
+          if(!!this.search){
+            return list.filter(o=>o.sna.indexOf(this.search) >= 0)
+          }
+          return list;
+        },
+        PageOrder(list){
+          if(this.field === "sbi"){
+            if(this.ordersbi){
+              return list.sort((a, b) => a.sbi - b.sbi )
+            }
+            else{
+              return list.sort((a, b) => b.sbi - a.sbi )
+            }
+          }else{
+            if(this.ordertot){
+              return list.sort((a, b) => a.tot - b.tot )
+            }
+            else{
+              return list.sort((a, b) => b.tot - a.tot )
+            }
+          }
+        },
+        PageSize(list){
+          var skipNum = this.pageIndex * this.pageSize;
+          return list.slice(skipNum,skipNum + parseInt(this.pageSize));
+        },
+        ChangePageIndex(value){
+          if(value <= this.pageCount){
+            this.pageIndex = value;
+          }
+        },
+        Prev(){
+          if(this.pageIndex > 0){
+            this.pageIndex--
+          }
+        },
+        Next(){
+          this.ChangePageIndex(this.pageIndex + 1);
+        }
+      },
+      created () {
+        fetch('https://tcgbusfs.blob.core.windows.net/blobyoubike/YouBikeTP.gz')
+            .then(res => res.json())
+            .then(json => {
+              const stops = Object.keys(json.retVal).map(key => json.retVal[key]);
+                this.uBikeStops = stops;
+                
+            });
+      }
+    }).mount('#app');
+  </script>
 
 </body>
+
 </html>
