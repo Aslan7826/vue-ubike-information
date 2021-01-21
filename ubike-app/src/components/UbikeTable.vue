@@ -2,6 +2,7 @@
   <table class="table table-striped">
     <thead>
       <tr>
+        <th></th>
         <th>#編號</th>
         <th>場站名稱</th>
         <th>場站區域</th>
@@ -19,15 +20,16 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="i in theTableData" 
-          v-bind="i"
-          :key="i.sno">
-        <td>{{i.sno}}</td>
-        <td>{{i.sna}}</td>
-        <td>{{i.sarea}}</td>
-        <td>{{i.sbi}}</td>
-        <td>{{i.tot}}</td>
-        <td>{{i.mday}}</td>
+      <tr v-for="o in theTableData" 
+          :key="o.sno"
+          >
+        <td><i class="fa myMOUSE" :class="o.showTop?'fa-star':'fa-star-o'" @click="click(o)"></i></td> 
+        <td>{{o.sno}}</td>
+        <td>{{o.sna}}</td>
+        <td>{{o.sarea}}</td>
+        <td>{{o.sbi}}</td>
+        <td>{{o.tot}}</td>
+        <td>{{o.mday}}</td>
       </tr>
     </tbody>
   </table>
@@ -36,8 +38,9 @@
 <script>
 export default {
   props: {
-    theTableData: Array
+    theTableData: Array,
   },
+  
   data(){
     return{
       field:"sbi",
@@ -48,6 +51,9 @@ export default {
     SetOrder(value) {
       this.order = !this.order;
       this.$emit('TableOrder',value,this.order);
+    },
+    click(obj){
+      this.$emit('SelectObj',obj);
     }
   },
 };

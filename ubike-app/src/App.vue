@@ -13,6 +13,7 @@
       <tag-u-bike-table 
         :theTableData="pageData" 
         @TableOrder="(fn,or)=>{field=fn; order=or}"
+        @SelectObj="FunClick"
         ></tag-u-bike-table>
     </div>
     <div>
@@ -69,18 +70,26 @@ export default {
       let func = this.order
         ? (a, b) => a[this.field] - b[this.field]
         : (a, b) => b[this.field] - a[this.field];
-      return list.sort(func);
+      return list.sort(func).sort((a,b)=>b.showTop-a.showTop);
     },
     FunPageSize(list) {
       const skipNum = this.pageIndex * this.pageSize;
       return list.slice(skipNum, skipNum + parseInt(this.pageSize));
     },
+    FunClick(obj){
+      obj.showTop = !obj.showTop;
+    }
   },
   created() {
     fetch("https://tcgbusfs.blob.core.windows.net/blobyoubike/YouBikeTP.gz")
       .then((res) => res.json())
       .then((json) => {
-        const stops = Object.keys(json.retVal).map((key) => json.retVal[key]);
+        const stops = Object.keys(json.retVal)
+        .map((key) => {
+            var data = json.retVal[key] 
+            data['showTop']=false
+            return data;
+           });
         this.uBikeStops = stops;
       });
   },
