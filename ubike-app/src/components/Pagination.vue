@@ -4,7 +4,7 @@
       <a>&lt;</a>
     </li>
     <li v-for="page in showPage" @click="ChangePageIndex(page + pIndex - 1)" :key="page">
-        <a :class=" {active: page === 1}">{{page+pIndex}}</a>
+      <a v-show="showPageIndex(page+pIndex)" :class=" {active: page === 1}">{{page+pIndex}}</a>
     </li>
     <li @click="ChangePageIndex(pIndex+1)">
       <a>&gt;</a>
@@ -16,18 +16,19 @@ export default {
   props: {
     thePageIndex: Number,
     thePageSize: Number,
-    theData: Array
+    theData: Array,
   },
   data() {
     return {
       pIndex: this.thePageIndex,
-      showPage : 5
+      showPage: 5,
     };
   },
   computed: {
     pageCount() {
       return Math.ceil(this.theData.length / this.thePageSize);
-    },
+    }
+
   },
   methods: {
     ChangePageIndex(value) {
@@ -39,6 +40,9 @@ export default {
         this.pIndex = value;
       }
       this.$emit("ChangeIndex", this.pIndex);
+    },
+    showPageIndex(value) {
+        return this.pageCount >= value;
     },
   },
 };
