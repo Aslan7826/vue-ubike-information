@@ -1,28 +1,101 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div>
+      <tag-search-page 
+        @GetStr="o=>search=o"
+        ></tag-search-page>
+      <tag-page-index 
+        :thePageSize="pageSize" 
+        @ChangeSize="o=>pageSize=o"
+        ></tag-page-index>
+    </div>
+    <div>
+      <tag-u-bike-table 
+        :theTableData="pageData" 
+        @TableOrder="(fn,or)=>{field=fn; order=or}"
+        ></tag-u-bike-table>
+    </div>
+    <div>
+      <tag-pagination
+        :thePageIndex="pageIndex"
+        :thePageSize="pageSize"
+        :theData="searchPage"
+        @ChangeIndex="(o)=>pageIndex=o"
+      ></tag-pagination>
+    </div>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import tagPageIndex from "./components/PageIndex";
+import tagPagination from "./components/Pagination";
+import tagSearchPage from "./components/Search";
+import tagUBikeTable from "./components/UbikeTable";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    HelloWorld
-  }
-}
+    tagPageIndex,
+    tagPagination,
+    tagSearchPage,
+    tagUBikeTable,
+  },
+  data() {
+    return {
+      uBikeStops: [],
+      search:'',
+      pageIndex: 0,
+      pageSize: 10,
+      field: "sbi",
+      order: true,
+    };
+  },
+  computed: {
+    searchPage(){
+      return this.FunPageSearch([...this.uBikeStops]);
+    },
+    pageData() {
+      return this.FunPageSize(this.FunPageOrder(this.searchPage));
+    },
+  },
+  methods: {
+    FunPageSearch(list) {
+      if (this.search != null) {
+        return list.filter((o) => o.sna.includes(this.search));
+      }
+      return list;
+    },
+    FunPageOrder(list) {
+      let func = this.order
+        ? (a, b) => a[this.field] - b[this.field]
+        : (a, b) => b[this.field] - a[this.field];
+      return list.sort(func);
+    },
+    FunPageSize(list) {
+      const skipNum = this.pageIndex * this.pageSize;
+      return list.slice(skipNum, skipNum + parseInt(this.pageSize));
+    },
+  },
+  created() {
+    fetch("https://tcgbusfs.blob.core.windows.net/blobyoubike/YouBikeTP.gz")
+      .then((res) => res.json())
+      .then((json) => {
+        const stops = Object.keys(json.retVal).map((key) => json.retVal[key]);
+        this.uBikeStops = stops;
+      });
+  },
+};
 </script>
-
-<style>
+<style lang="scss">
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
+  //    text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+.right {
+  float: right;
 }
 </style>
