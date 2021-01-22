@@ -96,6 +96,8 @@ export default {
 };
 </script>
 <style lang="scss">
+@import "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css";
+@import "https://pro.fontawesome.com/releases/v5.10.0/css/all.css";
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
