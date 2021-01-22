@@ -29,7 +29,7 @@
         <td>{{o.sarea}}</td>
         <td>{{o.sbi}}</td>
         <td>{{o.tot}}</td>
-        <td>{{o.mday}}</td>
+        <td>{{timeFormat(o.mday)}}</td>
       </tr>
     </tbody>
   </table>
@@ -54,7 +54,19 @@ export default {
     },
     click(obj){
       this.$emit('SelectObj',obj);
-    }
+      },
+    timeFormat(t) {
+      var date = [],
+        time = [];
+      date.push(t.substr(0, 4));
+      date.push(t.substr(4, 2));
+      date.push(t.substr(6, 2));
+      time.push(t.substr(8, 2));
+      time.push(t.substr(10, 2));
+      time.push(t.substr(12, 2));
+      return date.join("/") + " " + time.join(":");
+    },
+
   },
 };
 </script>
