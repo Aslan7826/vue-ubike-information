@@ -2,11 +2,11 @@
   <div id="app">
     <div>
       <tag-search-page 
-        @GetStr="o=>search=o"
+        @GetStr="ChangeSearch"
         ></tag-search-page>
       <tag-page-index 
         :thePageSize="pageSize" 
-        @ChangeSize="o=>pageSize=o"
+        @ChangeSize="ChangeSize"
         ></tag-page-index>
     </div>
     <div>
@@ -57,7 +57,7 @@ export default {
     },
     pageData() {
       return this.FunPageSize(this.FunPageOrder(this.searchPage));
-    },
+    }
   },
   methods: {
     FunPageSearch(list) {
@@ -78,6 +78,18 @@ export default {
     },
     FunClick(obj){
       obj.showTop = !obj.showTop;
+    },
+    ChangeSize(size){
+      this.pageSize = size;
+      this.PageIndexToZero();
+    },
+    ChangeSearch(search){
+      this.search = search;
+      this.PageIndexToZero();
+    },
+    PageIndexToZero(){
+      this.pageIndex = 0;
+      console.log(this.pageIndex);
     }
   },
   created() {

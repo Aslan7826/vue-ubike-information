@@ -45,6 +45,11 @@ export default {
         return this.pageCount >= value;
     },
   },
+  watch:{
+    thePageIndex(value){
+      this.pIndex = value;
+    }
+  }
 };
 </script>
 <style scoped>
